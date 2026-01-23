@@ -53,11 +53,11 @@ app.post('/api/session', async (req, res) => {
             params.gatewayAuthorization.apiKey = config.apiKey;
 
             // Configurar AVS Rules explícitamente (aunque sean false)
-            params.options.avsRules = {
-                rejectAddressMismatch: false,
-                rejectPostCodeMismatch: false,
-                rejectUnknown: false
-            };
+            // params.options.avsRules = {
+            //     rejectAddressMismatch: false,
+            //     rejectPostCodeMismatch: false,
+            //     rejectUnknown: false
+            // };
 
             // Credit Card
             params.options.paymentTypes.push({
