@@ -37,27 +37,21 @@ app.post('/api/session', async (req, res) => {
 
         const url = `https://${config.subdomain}.versapay.com/api/v1/sessions`;
 
-        let params = {
-            gatewayAuthorization: {},
-            options: {
-                orderTotal: orderTotal || "0.00",
-                paymentTypes: [],
-                fields: []
-            }
-        };
+        let params = {};
 
         // Lógica de autenticación: Priorizar API Token si existe, sino usar Legacy
         if (config.apiToken && config.apiKey) {
             console.log('Using API Token Auth');
-            params.gatewayAuthorization.apiToken = config.apiToken;
-            params.gatewayAuthorization.apiKey = config.apiKey;
+            params.gatewayAuthorization = {
+                apiToken: config.apiToken,
+                apiKey: config.apiKey
+            };
 
-            // Configurar AVS Rules explícitamente (aunque sean false)
-            // params.options.avsRules = {
-            //     rejectAddressMismatch: false,
-            //     rejectPostCodeMismatch: false,
-            //     rejectUnknown: false
-            // };
+            params.options = {
+                orderTotal: orderTotal || "0.00",
+                paymentTypes: [],
+                // avsRules: { ... } // Comentado por ahora
+            };
 
             // Credit Card
             params.options.paymentTypes.push({
@@ -74,19 +68,23 @@ app.post('/api/session', async (req, res) => {
         } else {
             // Legacy Auth (Gateway/Email/Password)
             console.log('Using Legacy Auth (Gateway/Email/Pass)');
-            params.gatewayAuthorization.gateway = config.gateway;
-            params.gatewayAuthorization.email = config.email;
-            params.gatewayAuthorization.password = config.password;
-            // IMPORTANTE: En legacy, 'accounts' es un array
-            params.gatewayAuthorization.accounts = [{ type: "creditCard", account: config.account }];
 
-            // Campos legacy
-            params.options.fields = [
-                { name: "cardholderName", label: "Cardholder Name", errorLabel: "Cardholder name" },
-                { name: "accountNo", label: "Account Number", errorLabel: "Credit card number" },
-                { name: "expDate", label: "Expiration Date", errorLabel: "Please check the Expiration Date" },
-                { name: "cvv", label: "Security code", errorLabel: "Enter Security Code", allowLabelUpdate: false }
-            ];
+            params.gatewayAuthorization = {
+                gateway: config.gateway,
+                email: config.email,
+                password: config.password,
+                accounts: [{ type: "creditCard", account: config.account }]
+            };
+
+            // En Legacy, 'options' solo tiene 'fields', NO 'paymentTypes' ni 'orderTotal' (según plugin PHP)
+            params.options = {
+                fields: [
+                    { name: "cardholderName", label: "Cardholder Name", errorLabel: "Cardholder name" },
+                    { name: "accountNo", label: "Account Number", errorLabel: "Credit card number" },
+                    { name: "expDate", label: "Expiration Date", errorLabel: "Please check the Expiration Date" },
+                    { name: "cvv", label: "Security code", errorLabel: "Enter Security Code", allowLabelUpdate: false }
+                ]
+            };
         }
 
         console.log('Solicitando sesión a Versapay:', url);
