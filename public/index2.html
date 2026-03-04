@@ -1,0 +1,104 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Versapay JS Ecomm Library Demo</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Yantramanav&display=swap');
+        </style>
+    </head>
+    <body>
+        <form id='form'>
+            <div id='container' style="height:358px; width:500px"></div>
+            <div style="position: relative">
+                <button id='submit' style=
+                    "width:420px;
+                    height:50px;
+                    color:#FFFFFF;
+                    font-size: 18px;
+                    line-height: 20px;
+                    background-color:#002233;
+                    margin: 16px 40px;
+                    font-family: Yantramanav;
+                    padding-left: 20px;
+                    border: 0;
+                    border-radius: 3px;"
+                >Pay</button>
+                <span id='submitError' style=
+                    "line-height: 14px;
+                    color: red;
+                    font-size: 12px;
+                    font-family: Yantramanav;
+                    position: absolute;
+                    bottom: -5px;
+                    left: 42px;"
+                ></span>
+            </div>
+        </form>
+        <script src="https://ecommerce-api-uat.versapay.com/client.js"></script>
+        <script>
+            const form = document.querySelector('#form')
+            const submit = document.querySelector('#submit')
+            const submitError = document.querySelector('#submitError')
+
+            // Get the Session ID from the server side API.
+            var clientSession = 'be16a297-7656-4a22-b924-71051b37e751';
+
+            // Set any custom styles to pass to the iFrame.
+            var styles = {
+                // html: {
+                //     "font-family": "DotGothic16",
+                // },
+                // input: {
+                //     "font-size": "14pt",
+                //     "color": "#3A3A3A",
+                // },
+                // select: {
+                //     "font-size": "14pt",
+                //     "color": "#3A3A3A",
+                // }
+            };
+
+            // Set custom google font families to display in the iFrame.
+            var fontUrls = ['https://fonts.googleapis.com/css2?family=DotGothic16&display=swap']
+
+            // Initialize the client with the Session ID and any custom styles or fonts.
+            var client = versapay.initClient(clientSession, styles, fontUrls)
+
+            // Instantiate the iFrame from client object using the target dom and set the frame height and width.
+            var frameReadyPromise = client.initFrame(document.querySelector('#container'), '358px', '500px')
+
+            // Initialize approval callbacks to handle success/failure of tokenization or payment in the iframe
+            client.onApproval(
+                onResolve = result => {
+                    // this is the callback function to use when the payment method is approved
+                    // the result.paymentType value can be used to conditionally handle different payment types (creditCard, ach, giftCard)
+                    // the result.token value can be passed up to the server-side code to use for other operations
+                    console.log(result)
+                },
+                onReject = error => {
+                    // this is the callback function to use when the payment method is rejected
+                    // the error.paymentType value can be used to conditionally handle different payment types (creditCard, ach, giftCard)
+                    // the error.error value will contain more information about the payment method error
+                    console.log(error)
+                }
+            )
+
+            // The client.initFrame function returns a promise that resolves when the iFrame is ready to be used
+            frameReadyPromise.then(function() {
+                // Code that is placed here will run after the iFrame is ready.
+                // For instance, you can disable your form submit button and
+                // only allow clicks after the iFrame is ready.
+                submit.removeAttribute('disabled')
+
+                // Add an event listener for your form submission.
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault()
+
+                    // Use submit to trigger the submit event on the form in the iframe
+                    client.submitEvents()
+                })
+            })
+        </script>
+    </body>
+</html>
