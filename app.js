@@ -124,4 +124,84 @@ app.post('/api/process-payment', async (req, res) => {
     }
 });
 
+// Endpoint para actualizar la orden de BigCommerce tras el pago
+// - Cambia el estado a "Awaiting Fulfillment" (status_id: 11)
+// - Guarda el token de Versapay en un custom field de la orden
+app.post('/api/update-order', async (req, res) => {
+    try {
+        const { orderId, versapayToken } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({ error: 'orderId is required' });
+        }
+
+        const bcStoreHash = process.env.BC_STORE_HASH;
+        const bcAccessToken = process.env.BC_ACCESS_TOKEN;
+        const bcBaseUrl = `https://api.bigcommerce.com/stores/${bcStoreHash}/v2`;
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-Auth-Token': bcAccessToken,
+        };
+
+        // 1. Actualizar estado de la orden → Awaiting Fulfillment (11)
+        const orderUpdateRes = await axios.put(
+            `${bcBaseUrl}/orders/${orderId}`,
+            { status_id: 11 },
+            { headers }
+        );
+
+        console.log(`Order ${orderId} status updated to Awaiting Fulfillment`);
+
+        // 2. Guardar el token de Versapay en los custom fields de la orden
+        if (versapayToken) {
+            // Obtener custom fields existentes para no sobreescribirlos
+            const existingRes = await axios.get(
+                `${bcBaseUrl}/orders/${orderId}/custom_fields`,
+                { headers }
+            ).catch(() => ({ data: [] }));
+
+            const existingFields = existingRes.data || [];
+
+            // Buscar si ya existe un campo "versapay_token"
+            const existingField = existingFields.find(f => f.name === 'versapay_token');
+
+            if (existingField) {
+                // Actualizar el campo existente
+                await axios.put(
+                    `${bcBaseUrl}/orders/${orderId}/custom_fields/${existingField.id}`,
+                    { name: 'versapay_token', value: versapayToken },
+                    { headers }
+                );
+                console.log(`Order ${orderId} custom field 'versapay_token' updated`);
+            } else {
+                // Crear el campo nuevo
+                await axios.post(
+                    `${bcBaseUrl}/orders/${orderId}/custom_fields`,
+                    { name: 'versapay_token', value: versapayToken },
+                    { headers }
+                );
+                console.log(`Order ${orderId} custom field 'versapay_token' created`);
+            }
+        }
+
+        res.json({
+            success: true,
+            orderId,
+            statusUpdated: true,
+            tokenSaved: !!versapayToken,
+        });
+
+    } catch (error) {
+        console.error(
+            'Error updating order:',
+            error.response ? JSON.stringify(error.response.data) : error.message
+        );
+        res.status(500).json({
+            error: 'Failed to update order',
+            details: error.response ? error.response.data : null,
+        });
+    }
+});
+
 module.exports = app;
