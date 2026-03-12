@@ -137,7 +137,7 @@ app.post('/api/update-order', async (req, res) => {
 
         const bcStoreHash = process.env.BC_STORE_HASH;
         const bcAccessToken = process.env.BC_ACCESS_TOKEN;
-        const bcBaseUrl = `https://api.bigcommerce.com/stores/${bcStoreHash}/v2`;
+        const bcBaseUrl = `https://api.bigcommerce.com/stores/${bcStoreHash}/v3`;
 
         const headers = {
             'Content-Type': 'application/json',
