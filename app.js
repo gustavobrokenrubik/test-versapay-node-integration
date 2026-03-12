@@ -137,7 +137,7 @@ app.post('/api/update-order', async (req, res) => {
 
         const bcStoreHash = process.env.BC_STORE_HASH;
         const bcAccessToken = process.env.BC_ACCESS_TOKEN;
-        const bcBaseUrl = `https://api.bigcommerce.com/stores/${bcStoreHash}/v3`;
+        const bcBaseUrl = `https://api.bigcommerce.com/stores/${bcStoreHash}/v2`;
 
         const headers = {
             'Content-Type': 'application/json',
@@ -146,44 +146,46 @@ app.post('/api/update-order', async (req, res) => {
 
         // 1. Actualizar estado de la orden → Awaiting Fulfillment (11)
         const orderUpdateRes = await axios.put(
-            `${bcBaseUrl}/orders/${orderId}`,
-            { status_id: 11 },
+            `${bcBaseUrl}/orders/${orderId}`, {
+                status_id: 11,
+                staff_notes: versapayToken || 'No Versapay Token Provided'
+             },
             { headers }
         );
 
         console.log(`Order ${orderId} status updated to Awaiting Fulfillment`);
 
         // 2. Guardar el token de Versapay en los custom fields de la orden
-        if (versapayToken) {
-            // Obtener custom fields existentes para no sobreescribirlos
-            const existingRes = await axios.get(
-                `${bcBaseUrl}/orders/${orderId}/custom_fields`,
-                { headers }
-            ).catch(() => ({ data: [] }));
+        // if (versapayToken) {
+        //     // Obtener custom fields existentes para no sobreescribirlos
+        //     const existingRes = await axios.get(
+        //         `${bcBaseUrl}/orders/${orderId}/custom_fields`,
+        //         { headers }
+        //     ).catch(() => ({ data: [] }));
 
-            const existingFields = existingRes.data || [];
+        //     const existingFields = existingRes.data || [];
 
-            // Buscar si ya existe un campo "versapay_token"
-            const existingField = existingFields.find(f => f.name === 'versapay_token');
+        //     // Buscar si ya existe un campo "versapay_token"
+        //     const existingField = existingFields.find(f => f.name === 'versapay_token');
 
-            if (existingField) {
-                // Actualizar el campo existente
-                await axios.put(
-                    `${bcBaseUrl}/orders/${orderId}/custom_fields/${existingField.id}`,
-                    { name: 'versapay_token', value: versapayToken },
-                    { headers }
-                );
-                console.log(`Order ${orderId} custom field 'versapay_token' updated`);
-            } else {
-                // Crear el campo nuevo
-                await axios.post(
-                    `${bcBaseUrl}/orders/${orderId}/custom_fields`,
-                    { name: 'versapay_token', value: versapayToken },
-                    { headers }
-                );
-                console.log(`Order ${orderId} custom field 'versapay_token' created`);
-            }
-        }
+        //     if (existingField) {
+        //         // Actualizar el campo existente
+        //         await axios.put(
+        //             `${bcBaseUrl}/orders/${orderId}/custom_fields/${existingField.id}`,
+        //             { name: 'versapay_token', value: versapayToken },
+        //             { headers }
+        //         );
+        //         console.log(`Order ${orderId} custom field 'versapay_token' updated`);
+        //     } else {
+        //         // Crear el campo nuevo
+        //         await axios.post(
+        //             `${bcBaseUrl}/orders/${orderId}/custom_fields`,
+        //             { name: 'versapay_token', value: versapayToken },
+        //             { headers }
+        //         );
+        //         console.log(`Order ${orderId} custom field 'versapay_token' created`);
+        //     }
+        // }
 
         res.json({
             success: true,
