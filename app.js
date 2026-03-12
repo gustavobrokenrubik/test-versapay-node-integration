@@ -103,8 +103,7 @@ app.post('/api/process-payment', async (req, res) => {
             payments: payments.map(p => ({
                 type: p.payment_type,
                 token: p.token,
-                // TODO: ajustar a 0.01
-                amount: 0.00,
+                amount: 0.01,
                 // Lógica del PHP
                 capture: p.payment_type !== 'creditCard',
             })),
