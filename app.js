@@ -99,9 +99,9 @@ app.post('/api/process-payment', async (req, res) => {
             billingAddress: billingAddress || {},
             shippingAddress: shippingAddress || {},
             lines,
-            shippingAmount: amounts.shipping || 0,
-            discountAmount: amounts.discount || 0,
-            taxAmount: amounts.tax || 0,
+            shippingAmount: 0,
+            discountAmount: 0,
+            taxAmount: 0,
             payments: payments.map(p => ({
                 type: p.payment_type,
                 token: p.token,
