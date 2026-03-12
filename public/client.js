@@ -59,29 +59,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. Inicializar Cliente Versapay
     const styles = {
-        html: {
-            "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+       html: {
+            'font-family': 'Karla, Arial, Helvetica, sans-serif',
+            'font-size': '13px',
+        },
+        h1: {
+            'display': 'none',
+            'visibility': 'hidden',
+            'font-size': '0',
+        },
+        'label.form-label': {
+            'font-size': '14px',
         },
         input: {
-            "font-size": "14px",
-            "color": "#333"
+            'font-size': '13px',
+            'color': '#333',
+            'height': '44px',
+            'line-height': '22px',
         },
         select: {
-            "font-size": "14px",
-            "color": "#333"
-        }
+            'font-size': '13px',
+            'color': '#333',
+            'height': '44px',
+            'line-height': '22px',
+        },
+        '.form-error': {
+            'font-size': '12px',
+            'line-height': '12px',
+        },
+        '.form-div-half': {
+            'margin-bottom': '15px',
+        },
+        '.form-div-full': {
+            'margin-bottom': '15px',
+        },
+        '#accountNo': {
+            'padding-left': 'calc(2rem + 20px)',
+        },
     };
 
-    const fontUrls = ['https://fonts.googleapis.com/css2?family=DotGothic16&display=swap'];
+    const fontUrls = ['https://fonts.googleapis.com/css?family=Montserrat:400%7COswald:300%7CKarla:400&display=swap'];
 
-    client = versapay.initClient(sessionKey, styles, fontUrls, parseFloat(cartTotal));
+    client = versapay.initClient(sessionKey, styles, fontUrls);
 
     // 4. Inicializar Iframe
     const container = document.getElementById('versapay-container');
     const docWidth = container.clientWidth;
 
     try {
-        await client.initFrame(container, '360px', `${docWidth}px`);
+        await client.initFrame(container, '300px', `${docWidth}px`);
         console.log('Versapay Frame Ready');
         placeOrderBtn.disabled = false;
 

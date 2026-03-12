@@ -35,7 +35,7 @@
                 ></span>
             </div>
         </form>
-        <script src="https://ecommerce-api-uat.versapay.com/client.js"></script>
+        <script src="https://ecommerce-api.versapay.com/client.js"></script>
         <script>
             const form = document.querySelector('#form')
             const submit = document.querySelector('#submit')
@@ -46,6 +46,13 @@
 
             // Set any custom styles to pass to the iFrame.
             var styles = {
+                html: {
+                    'font-family': 'Karla, Arial, Helvetica, sans-serif',
+                    'font-size': '13px',
+                },
+                'view-header h1': {
+                    'display': 'none',
+                },
                 // html: {
                 //     "font-family": "DotGothic16",
                 // },
@@ -60,7 +67,7 @@
             };
 
             // Set custom google font families to display in the iFrame.
-            var fontUrls = ['https://fonts.googleapis.com/css2?family=DotGothic16&display=swap']
+            var fontUrls = ['https://fonts.googleapis.com/css2?family=Karla:400|Montserrat:400&display=swap']
 
             // Initialize the client with the Session ID and any custom styles or fonts.
             var client = versapay.initClient(clientSession, styles, fontUrls)

@@ -15,9 +15,6 @@ const getVpConfig = () => ({
     apiKey: process.env.VERSAPAY_API_KEY,
     apiToken: process.env.VERSAPAY_API_TOKEN,
     gateway: process.env.VERSAPAY_GATEWAY,
-    email: process.env.VERSAPAY_EMAIL,
-    password: process.env.VERSAPAY_PASSWORD,
-    account: process.env.VERSAPAY_ACCOUNT
 });
 
 // Endpoint para obtener configuración pública
@@ -35,7 +32,7 @@ app.post('/api/session', async (req, res) => {
         const config = getVpConfig();
         const { orderTotal } = req.body;
 
-        const url = `https://${config.subdomain}.versapay.com/api/v1/sessions`;
+        const url = `https://${config.subdomain}.versapay.com/api/v2/sessions`;
 
         let params = {};
 
@@ -59,32 +56,12 @@ app.post('/api/session', async (req, res) => {
                 promoted: false,
                 label: "Payment Card",
                 fields: [
-                    { name: "cardholderName", label: "Cardholder Name", errorLabel: "Cardholder name" },
-                    { name: "accountNo", label: "Account Number", errorLabel: "Credit card number" },
-                    { name: "expDate", label: "Expiration Date", errorLabel: "Expiration date" },
-                    { name: "cvv", label: "Security code", allowLabelUpdate: false, errorLabel: "Security code" }
+                    { name: "cardholderName", label: "Name on Card", errorLabel: "Cardholder Name" },
+                    { name: "accountNo", label: "Credit Card Number", errorLabel: "Credit Card Number" },
+                    { name: "expDate", label: "Expiration", errorLabel: "Expiration" },
+                    { name: "cvv", label: "CVV", allowLabelUpdate: false, errorLabel: "CVV" }
                 ]
             });
-        } else {
-            // Legacy Auth (Gateway/Email/Password)
-            console.log('Using Legacy Auth (Gateway/Email/Pass)');
-
-            params.gatewayAuthorization = {
-                gateway: config.gateway,
-                email: config.email,
-                password: config.password,
-                accounts: [{ type: "creditCard", account: config.account }]
-            };
-
-            // En Legacy, 'options' solo tiene 'fields', NO 'paymentTypes' ni 'orderTotal' (según plugin PHP)
-            params.options = {
-                fields: [
-                    { name: "cardholderName", label: "Cardholder Name", errorLabel: "Cardholder name" },
-                    { name: "accountNo", label: "Account Number", errorLabel: "Credit card number" },
-                    { name: "expDate", label: "Expiration Date", errorLabel: "Please check the Expiration Date" },
-                    { name: "cvv", label: "Security code", errorLabel: "Enter Security Code", allowLabelUpdate: false }
-                ]
-            };
         }
 
         console.log('Solicitando sesión a Versapay:', url);
@@ -107,24 +84,31 @@ app.post('/api/session', async (req, res) => {
 app.post('/api/process-payment', async (req, res) => {
     try {
         const config = getVpConfig();
-        const {sessionKey, payments, billingAddress, shippingAddress, amounts} = req.body;
+        const {sessionKey, payments, billingAddress, shippingAddress, lines} = req.body;
 
-        const url = `https://${config.subdomain}.versapay.com/api/v1/sessions/${sessionKey}/sales`;
+        const url = `https://${config.subdomain}.versapay.com/api/v2/sessions/${sessionKey}/sales`;
 
         // Construir el payload de venta
         const payload = {
-            currency: 'USD', // O dinámico
+            gatewayAuthorization: {
+                apiToken: config.apiToken,
+                apiKey: config.apiKey
+            },
+            orderNumber: 'TEST' + Date.now(),
+            currency: 'USD',
             billingAddress: billingAddress || {},
             shippingAddress: shippingAddress || {},
-            lines: [], // Items del carrito
+            lines,
             shippingAmount: amounts.shipping || 0,
             discountAmount: amounts.discount || 0,
             taxAmount: amounts.tax || 0,
             payments: payments.map(p => ({
                 type: p.payment_type,
                 token: p.token,
-                amount: parseFloat(p.amount),
-                capture: p.payment_type !== 'creditCard', // Lógica del PHP
+                // TODO: ajustar a 0.01
+                amount: 0.00,
+                // Lógica del PHP
+                capture: p.payment_type !== 'creditCard',
             })),
         };
 
