@@ -30,7 +30,6 @@ app.get('/api/config', (req, res) => {
 app.post('/api/session', async (req, res) => {
     try {
         const config = getVpConfig();
-        const { orderTotal } = req.body;
 
         const url = `https://${config.subdomain}.versapay.com/api/v2/sessions`;
 
@@ -45,7 +44,6 @@ app.post('/api/session', async (req, res) => {
             };
 
             params.options = {
-                orderTotal: orderTotal || "0.00",
                 paymentTypes: [],
                 // avsRules: { ... } // Comentado por ahora
             };
