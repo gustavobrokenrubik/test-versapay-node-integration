@@ -82,7 +82,14 @@ app.post('/api/session', async (req, res) => {
 app.post('/api/process-payment', async (req, res) => {
     try {
         const config = getVpConfig();
-        const {sessionKey, payments, billingAddress, shippingAddress, lines} = req.body;
+        const {
+            sessionKey,
+            payments,
+            billingAddress,
+            shippingAddress,
+            lines,
+            orderNumber
+        } = req.body;
 
         const url = `https://${config.subdomain}.versapay.com/api/v2/sessions/${sessionKey}/sales`;
 
@@ -92,7 +99,7 @@ app.post('/api/process-payment', async (req, res) => {
                 apiToken: config.apiToken,
                 apiKey: config.apiKey
             },
-            orderNumber: 'TEST' + Date.now(),
+            orderNumber: orderNumber || 'SO-' + Date.now(),
             currency: 'USD',
             billingAddress: billingAddress || {},
             shippingAddress: shippingAddress || {},
