@@ -171,7 +171,7 @@ app.post('/api/update-order', async (req, res) => {
         if (versapayToken) {
             // Obtener metafields existentes para verificar si ya se creó antes
             const metaRes = await axios.get(
-                `${bcBaseUrlV3}/orders/${orderId}/metafields?namespace=Versapay&key=versapay_token`,
+                `${bcBaseUrlV3}/orders/${orderId}/metafields?namespace=Versapay&key=versapay_order_id`,
                 { headers }
             ).catch(() => ({ data: { data: [] } }));
 
@@ -187,7 +187,7 @@ app.post('/api/update-order', async (req, res) => {
                     },
                     { headers }
                 );
-                console.log(`Order ${orderId} metafield 'versapay_token' updated`);
+                console.log(`Order ${orderId} metafield 'versapay_order_id' updated`);
             } else {
                 // Crear el metafield nuevo (sin description, tal como solicitaste)
                 await axios.post(
@@ -195,12 +195,12 @@ app.post('/api/update-order', async (req, res) => {
                     {
                         permission_set: 'read', // Esto hace que sea invisible en el frontend de la tienda
                         namespace: 'Versapay',
-                        key: 'versapay_token',
+                        key: 'versapay_order_id',
                         value: versapayToken
                     },
                     { headers }
                 );
-                console.log(`Order ${orderId} metafield 'versapay_token' created`);
+                console.log(`Order ${orderId} metafield 'versapay_order_id' created`);
             }
         }
 
